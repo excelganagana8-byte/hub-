@@ -31,7 +31,6 @@ git-hub/
 │   ├── models/             # MongoDB models
 │   ├── routes/             # API route definitions
 │   ├── controllers/        # Route controller logic
-│   ├── middleware/         # Custom middleware (e.g., JWT auth)
 │   └── server.js           # Server entry point
 ├── .gitignore
 └── README.md
