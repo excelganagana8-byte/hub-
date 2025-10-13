@@ -7,13 +7,25 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
-.DS_Store
+**/node_modules/
+
+# Builds
 dist
 dist-ssr
 coverage
-*.local
 
+# Env files
+.env
+server/.env
+
+# Temporary files
+*.local
+*.bak
+*.tmp
+
+# Test artifacts
 /cypress/videos/
 /cypress/screenshots/
 
@@ -27,4 +39,8 @@ coverage
 *.sln
 *.sw?
 
+# TypeScript build info
 *.tsbuildinfo
+
+# Backend build output (if using TS)
+server/dist/
