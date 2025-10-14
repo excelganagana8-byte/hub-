@@ -1,4 +1,4 @@
-# 🚀 Git-Hub
+# 🚀 Hub
 
 A modern, full-stack web application built with **Vue 3** on the frontend and **Express.js & MongoDB** on the backend — designed to demonstrate how the frontend seamlessly interacts with the backend using a RESTful API architecture and powered by Vite for speed and efficiency.
 
@@ -19,7 +19,7 @@ A modern, full-stack web application built with **Vue 3** on the frontend and **
 ## 🗂️ Project Structure
 
 ```bash
-git-hub/
+hub/
 ├── client/                 # Vue 3 + Vite Frontend
 │   ├── src/
 │   │   ├── components/     # Reusable Vue components
@@ -47,8 +47,8 @@ git-hub/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/excelganagana8-byte/git-hub.git
-cd git-hub
+git clone https://github.com/excelganagana8-byte/hub.git
+cd hub
 
 # Navigate to the server directory
 cd server
