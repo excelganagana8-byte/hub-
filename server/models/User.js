@@ -1,0 +1,28 @@
+import mongoose, { Schema } from "mongoose";
+
+const userSchema = new Schema(
+  {
+    email: {
+      type: String,
+      unique: true,
+      required: true,
+      trim: true,
+      lowercase: true,
+    },
+    username: {
+      type: String,
+      trim: true,
+      required: true,
+    },
+    password: {
+      required: true,
+      type: String,
+      minLength: 8,
+    },
+  },
+  { timestamps: true }
+);
+
+const User = mongoose.model("User", userSchema);
+
+export default User;

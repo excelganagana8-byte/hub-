@@ -1,4 +1,4 @@
-# 🚀 Git-Hub
+# 🚀 Hub
 
 A modern, full-stack web application built with **Vue 3** on the frontend and **Express.js & MongoDB** on the backend — designed to demonstrate how the frontend seamlessly interacts with the backend using a RESTful API architecture and powered by Vite for speed and efficiency.
 
