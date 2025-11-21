@@ -1,6 +1,6 @@
 import express from "express";
 import { body } from "express-validator";
-import { signUp } from "../controllers/AuthenticationController.js";
+import { signUp, signIn } from "../controllers/AuthenticationController.js";
 
 const router = express.Router();
 
@@ -23,5 +23,16 @@ router.post(
   ],
   signUp
 );
+router.post("/signin",
+  [
+    body("usernameOrEmail")
+    .notEmpty()
+    .withMessage("Please enter a username or email"),
+
+    body("password")
+    .notEmpty()
+    .withMessage("password is required")
+  ]
+  signIn);
 
 export default router;
