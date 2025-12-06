@@ -54,7 +54,7 @@ const registerUser = async () => {
       <div class="relative z-10 max-w-md">
         <h1 class="text-4xl font-bold mt-12 mb-6 tracking-tight">Create Your Free Account</h1>
         <p class="text-lg text-gray-300 mb-12 leading-relaxed">
-          Join millions of developers and teams building amazing things together on GitHub.
+          Join millions of developers and teams building amazing things together on CollabXter.
         </p>
 
         <!-- Feature highlights -->
@@ -116,7 +116,7 @@ const registerUser = async () => {
           </span>
         </div>
 
-        <h1 class="font-bold text-3xl text-gray-800 mb-2 text-center">Sign Up for GitHub</h1>
+        <h1 class="font-bold text-3xl text-gray-800 mb-2 text-center">Sign Up for CollabX</h1>
         <p class="text-gray-600 text-center mb-8">Join the world's largest developer community</p>
 
         <!-- Social Buttons with SVG icons -->

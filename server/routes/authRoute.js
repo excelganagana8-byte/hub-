@@ -23,16 +23,16 @@ router.post(
   ],
   signUp
 );
-router.post("/signin",
+router.post(
+  "/signin",
   [
     body("usernameOrEmail")
-    .notEmpty()
-    .withMessage("Please enter a username or email"),
+      .notEmpty()
+      .withMessage("Please enter a username or email"),
 
-    body("password")
-    .notEmpty()
-    .withMessage("password is required")
-  ]
-  signIn);
+    body("password").notEmpty().withMessage("password is required"),
+  ],
+  signIn
+);
 
 export default router;
