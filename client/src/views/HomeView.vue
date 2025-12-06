@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
+import TeamService from '@/services/TeamService'
 
 const auth = useAuthStore()
 const user = ref(null)
@@ -8,13 +9,20 @@ const activeTeam = ref(null)
 const recentActivity = ref([])
 const upcomingMeetings = ref([])
 const quickAccessItems = ref([])
+const teams = ref([])
 const activeNav = ref('home')
 const isSidebarCollapsed = ref(false)
 
 // Mock data - replace with actual API calls
-onMounted(() => {
+onMounted(async () => {
   user.value = auth.user
 
+  try {
+    const response = await TeamService.fetchTeams()
+    teams.value = response.data.teams
+  } catch (err) {
+    console.error('Failed To Fetch Teams', err)
+  }
   // Sample data
   activeTeam.value = {
     id: 1,
@@ -77,13 +85,6 @@ onMounted(() => {
     { id: 4, title: 'Create Task', icon: '✅', color: 'bg-yellow-100 text-yellow-700' },
   ]
 })
-
-const teams = [
-  { id: 1, name: 'Development', members: 8, color: 'bg-blue-500', unread: 3 },
-  { id: 2, name: 'Design', members: 5, color: 'bg-purple-500', unread: 0 },
-  { id: 3, name: 'Marketing', members: 6, color: 'bg-green-500', unread: 1 },
-  { id: 4, name: 'Management', members: 4, color: 'bg-yellow-500', unread: 0 },
-]
 
 const navItems = [
   { id: 'home', label: 'Home', icon: '🏠', active: true },
