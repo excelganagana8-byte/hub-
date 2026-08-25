@@ -7,8 +7,12 @@ const password = ref('')
 const username = ref('')
 const errors = ref({})
 
+const loginWithGoogle = () => {
+  window.location.href = 'http://localhost:3000/auth/google'
+}
+
 const registerUser = async () => {
-  errors.value = {} // clear previous errors
+  errors.value = {}
 
   try {
     const response = await AuthenticationService.register({
@@ -20,22 +24,16 @@ const registerUser = async () => {
   } catch (err) {
     const data = err.response?.data
 
-    // Case 1: Object-based errors (from backend)
     if (data?.errors && typeof data.errors === 'object') {
       errors.value = data.errors
-    }
-    // Case 2: General error (like user already exists)
-    else if (data?.message) {
+    } else if (data?.message) {
       errors.value.general = data.message
-    }
-    // Fallback
-    else {
+    } else {
       errors.value.general = 'Something went wrong. Please retry.'
     }
   }
 }
 </script>
-
 <template>
   <!-- Full Page Container -->
   <div class="w-full flex flex-col min-h-screen md:flex-row bg-gray-50">
@@ -122,6 +120,7 @@ const registerUser = async () => {
         <!-- Social Buttons with SVG icons -->
         <div class="flex flex-col gap-3">
           <button
+            @click="loginWithGoogle"
             class="flex items-center cursor-pointer justify-center gap-3 border border-gray-300 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-700"
           >
             <svg class="w-5 h-5" viewBox="0 0 24 24">

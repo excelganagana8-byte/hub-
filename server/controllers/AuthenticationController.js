@@ -69,7 +69,7 @@ export const signIn = async (req, res) => {
 
     //check if the user exist
     const existingUser = await User.findOne(
-      isEmail ? { email: usernameOrEmail } : { username: usernameOrEmail }
+      isEmail ? { email: usernameOrEmail } : { username: usernameOrEmail },
     );
     if (!existingUser)
       return res
@@ -143,7 +143,7 @@ export const sendVerificationPin = async (req, res) => {
     const verification = await VerificationPin.findOneAndUpdate(
       { user: user.id },
       { pin, expires_in },
-      { new: true, upsert: true }
+      { new: true, upsert: true },
     );
 
     //TODO: send email/SMS here

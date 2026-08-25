@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 
 export const useAuthStore = defineStore('auth', {
-  //state
   state: () => ({
     token: localStorage.getItem('token') || null,
+
     user: (() => {
       try {
         const userString = localStorage.getItem('user')
@@ -23,6 +23,7 @@ export const useAuthStore = defineStore('auth', {
     login(user, token) {
       this.user = user
       this.token = token
+
       localStorage.setItem('token', token)
       localStorage.setItem('user', JSON.stringify(user))
     },
@@ -30,6 +31,7 @@ export const useAuthStore = defineStore('auth', {
     logout() {
       this.user = null
       this.token = null
+
       localStorage.removeItem('token')
       localStorage.removeItem('user')
     },
@@ -37,12 +39,13 @@ export const useAuthStore = defineStore('auth', {
     loadUser() {
       const token = localStorage.getItem('token')
       const userString = localStorage.getItem('user')
+
       if (token && userString) {
         try {
           this.token = token
           this.user = JSON.parse(userString)
         } catch {
-          this.logout
+          this.logout()
         }
       }
     },

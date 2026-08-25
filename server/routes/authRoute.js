@@ -1,6 +1,7 @@
 import express from "express";
 import { body } from "express-validator";
 import { signUp, signIn } from "../controllers/AuthenticationController.js";
+import passport from "passport";
 
 const router = express.Router();
 
@@ -21,8 +22,9 @@ router.post(
       .isLength({ min: 8 })
       .withMessage("password must be atleast 8 characters"),
   ],
-  signUp
+  signUp,
 );
+
 router.post(
   "/signin",
   [
@@ -32,7 +34,25 @@ router.post(
 
     body("password").notEmpty().withMessage("password is required"),
   ],
-  signIn
+  signIn,
+);
+
+router.get(
+  "/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+  }),
+);
+
+router.get(
+  "/google/callback",
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: "http://localhost:5173/login",
+  }),
+  async (req, res) => {
+    res.redirect("http://localhost:5173");
+  },
 );
 
 export default router;

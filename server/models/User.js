@@ -9,22 +9,30 @@ const userSchema = new Schema(
       trim: true,
       lowercase: true,
     },
+
     username: {
       type: String,
       trim: true,
       required: true,
     },
+
     password: {
-      required: true,
       type: String,
       minLength: 8,
     },
+
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+
     isVerified: {
       type: Boolean,
       default: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const User = mongoose.model("User", userSchema);
