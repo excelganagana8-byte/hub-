@@ -3,10 +3,12 @@ import dotenv from "dotenv";
 import morgan from "morgan";
 import cors from "cors";
 import passport from "passport";
+
 import { generateToken } from "./services/generateToken.js";
 import { connectDB } from "./config/database/db.js";
 import authRoutes from "./routes/authRoute.js";
 import teamRoutes from "./routes/teamRoute.js";
+
 import "./config/googleAuth.js";
 
 dotenv.config();
@@ -17,9 +19,14 @@ const app = express();
 app.use(morgan("dev"));
 app.use(express.json());
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://hub-one-amber.vercel.app",
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
     credentials: true,
   }),
 );
@@ -49,7 +56,7 @@ app.get(
   "/auth/google/callback",
   passport.authenticate("google", {
     session: false,
-    failureRedirect: "http://localhost:5173/login",
+    failureRedirect: "https://hub-one-amber.vercel.app/login",
   }),
   (req, res) => {
     const token = generateToken(req.user);
@@ -60,7 +67,7 @@ app.get(
     };
 
     res.redirect(
-      `http://localhost:5173/?token=${token}&user=${encodeURIComponent(
+      `https://hub-one-amber.vercel.app/?token=${token}&user=${encodeURIComponent(
         JSON.stringify(user),
       )}`,
     );

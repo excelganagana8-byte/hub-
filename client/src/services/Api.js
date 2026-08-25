@@ -2,7 +2,7 @@ import axios from 'axios'
 
 export default () => {
   const api = axios.create({
-    baseURL: 'http://localhost:3000/api',
+    baseURL: 'https://collab-x-api.onrender.com/api',
   })
 
   api.interceptors.request.use(
