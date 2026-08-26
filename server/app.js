@@ -6,6 +6,7 @@ import passport from "passport";
 
 import { generateToken } from "./services/generateToken.js";
 import { connectDB } from "./config/database/db.js";
+
 import authRoutes from "./routes/authRoute.js";
 import teamRoutes from "./routes/teamRoute.js";
 

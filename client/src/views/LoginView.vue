@@ -12,7 +12,7 @@ const password = ref('')
 const errors = ref([])
 
 const loginWithGoogle = () => {
-  window.location.href = 'http://localhost:3000/auth/google'
+  window.location.href = 'https://collab-x-api.onrender.com/auth/google'
 }
 
 const login = async () => {
@@ -136,9 +136,7 @@ const login = async () => {
         <!-- Divider -->
         <div class="flex items-center justify-center w-full my-6">
           <div class="flex-grow h-px bg-gray-300"></div>
-
-          <span class="px-4 text-gray-500 text-sm font-medium"> or </span>
-
+          <span class="px-4 text-gray-500 text-sm font-medium">or</span>
           <div class="flex-grow h-px bg-gray-300"></div>
         </div>
 
@@ -190,9 +188,9 @@ const login = async () => {
         <!-- Links -->
         <div class="text-center mt-6 space-y-3">
           <p class="text-sm text-gray-600">
-            New to CodeHub?
+            New to CollabX?
 
-            <RouterLink to="/signup" class="text-blue-600 hover:underline">
+            <RouterLink to="/register" class="text-blue-600 hover:underline">
               Create an account
             </RouterLink>
           </p>
@@ -221,7 +219,7 @@ const login = async () => {
           <RouterLink to="/docs" class="hover:text-blue-600 hover:underline"> Docs </RouterLink>
 
           <RouterLink to="/contact" class="hover:text-blue-600 hover:underline">
-            Contact CodeHub Support
+            Contact CollabX Support
           </RouterLink>
 
           <RouterLink to="/cookies" class="hover:text-blue-600 hover:underline">
