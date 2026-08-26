@@ -5,17 +5,17 @@ import { generateToken } from "../services/generateToken.js";
 import VerificationPin from "../models/VerificationPin.js";
 import { generateRef } from "../utils/generateRef.js";
 
-//register logic
+// register logic
 export const signUp = async (req, res) => {
   try {
     const errors = validationResult(req);
+
     if (!errors.isEmpty()) {
-      // Log to confirm the structure
       console.log("Validation errors:", errors.array());
 
       const formattedErrors = {};
+
       errors.array().forEach((err) => {
-        // Some versions use "path" instead of "param"
         const field = err.param || err.path;
         formattedErrors[field] = err.msg;
       });
@@ -27,28 +27,43 @@ export const signUp = async (req, res) => {
 
     // Check for existing user
     const existingUser = await User.findOne({ email });
+
     if (existingUser) {
-      return res.status(400).json({ message: "User already exist" });
+      return res.status(400).json({
+        message: "User already exist",
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ email, password: hashedPassword, username });
+
+    const user = new User({
+      email,
+      password: hashedPassword,
+      username,
+    });
+
     await user.save();
 
-    // Generate jwt
+    // Generate JWT
     const token = generateToken(user);
 
-    res.status(201).json({
+    return res.status(201).json({
       message: `Hello ${username}!, signup successful`,
-      user: { email, username },
-      token,
+      data: {
+        user: {
+          email,
+          username,
+        },
+        token,
+      },
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Server error",
+    });
   }
 };
-
 //login logic
 export const signIn = async (req, res) => {
   try {
