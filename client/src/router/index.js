@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+
 import HomeView from '../views/HomeView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import LoginView from '@/views/LoginView.vue'
@@ -12,24 +13,28 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
+      meta: { requiresAuth: true },
     },
 
     {
       path: '/register',
       name: 'signUp',
       component: RegisterView,
+      meta: { guestOnly: true },
     },
 
     {
       path: '/login',
       name: 'signIn',
       component: LoginView,
+      meta: { guestOnly: true },
     },
 
     {
       path: '/teams/:teamId',
       name: 'TeamWorkspace',
       component: () => import('@/views/TeamWorkspace.vue'),
+      meta: { requiresAuth: true },
     },
   ],
 })
@@ -37,6 +42,7 @@ const router = createRouter({
 router.beforeEach((to) => {
   const auth = useAuthStore()
 
+  // Handle Google OAuth redirect
   const token = to.query.token
   const userString = to.query.user
 
@@ -46,13 +52,31 @@ router.beforeEach((to) => {
 
       auth.login(user, token)
 
-      // Remove token and user from the URL
+      // Remove token and user from URL
       return {
         path: to.path,
         query: {},
       }
     } catch (error) {
       console.error('Google authentication error:', error)
+
+      return {
+        name: 'signIn',
+      }
+    }
+  }
+
+  // Protected route
+  if (to.meta.requiresAuth && !auth.isLoggedIn) {
+    return {
+      name: 'signIn',
+    }
+  }
+
+  // Guest-only route
+  if (to.meta.guestOnly && auth.isLoggedIn) {
+    return {
+      name: 'home',
     }
   }
 
