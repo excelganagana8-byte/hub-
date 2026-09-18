@@ -173,8 +173,25 @@ const navItems = [
 ]
 
 // Change navigation
+const navRoutes = {
+  home: '/dashboard',
+  teams: '/teams',
+  chat: '/chat',
+  calendar: '/calendar',
+  files: '/files',
+  tasks: '/tasks',
+  analytics: '/analytics',
+  settings: '/settings',
+}
+
 const setActiveNav = (navId) => {
   activeNav.value = navId
+
+  const route = navRoutes[navId]
+
+  if (route) {
+    router.push(route)
+  }
 }
 
 // Select team
@@ -916,16 +933,249 @@ main::-webkit-scrollbar {
 }
 
 main::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #f1f5f9;
 }
 
 main::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
+  background: linear-gradient(#60a5fa, #2563eb);
+  border-radius: 999px;
 }
 
 main::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #1d4ed8;
+}
+
+/* Smooth global motion */
+button,
+input,
+textarea,
+aside,
+header,
+main > div,
+main article,
+main section {
+  transition:
+    transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 240ms ease,
+    background-color 240ms ease,
+    border-color 240ms ease,
+    color 240ms ease,
+    opacity 240ms ease;
+}
+
+button:not(:disabled):hover {
+  transform: translateY(-2px);
+}
+
+button:not(:disabled):active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Dashboard cards */
+.bg-white.rounded-xl,
+.bg-white.rounded-lg {
+  animation: cardEnter 0.65s both;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
+}
+
+.bg-white.rounded-xl:hover,
+.bg-white.rounded-lg:hover {
+  box-shadow: 0 18px 42px rgba(37, 99, 235, 0.12);
+  transform: translateY(-3px);
+}
+
+/* Team cards */
+.group {
+  animation: slideUp 0.55s both;
+}
+
+.group:nth-child(2) {
+  animation-delay: 80ms;
+}
+.group:nth-child(3) {
+  animation-delay: 160ms;
+}
+.group:nth-child(4) {
+  animation-delay: 240ms;
+}
+
+.group:hover {
+  transform: translateY(-5px) scale(1.01);
+}
+
+/* Interactive fields */
+input,
+textarea {
+  transition:
+    box-shadow 220ms ease,
+    border-color 220ms ease,
+    transform 220ms ease;
+}
+
+input:focus,
+textarea:focus {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 4px rgba(59, 130, 246, 0.13),
+    0 8px 20px rgba(30, 64, 175, 0.08);
+}
+
+/* Sidebar and navigation */
+aside {
+  animation: sidebarEnter 0.6s ease-out both;
+}
+
+nav button {
+  position: relative;
+  overflow: hidden;
+}
+
+nav button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  transform: translateX(-120%);
+  transition: transform 500ms ease;
+}
+
+nav button:hover::before {
+  transform: translateX(120%);
+}
+
+/* Active team gradient */
+.bg-gradient-to-r {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 14px 35px rgba(37, 99, 235, 0.22);
+}
+
+.bg-gradient-to-r::after {
+  content: '';
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  right: -70px;
+  top: -80px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  animation: floatOrb 5s ease-in-out infinite;
+}
+
+/* Quick access tiles */
+.grid button:hover {
+  box-shadow: 0 12px 25px rgba(15, 23, 42, 0.1);
+}
+
+/* Modal backdrop and dialog */
+.fixed.inset-0 {
+  animation: backdropIn 220ms ease-out both;
+  backdrop-filter: blur(8px);
+}
+
+.fixed.inset-0 > div {
+  animation: modalIn 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  box-shadow: 0 25px 80px rgba(15, 23, 42, 0.28);
+}
+
+.fixed.inset-0 input,
+.fixed.inset-0 textarea {
+  background: #f8fafc;
+}
+
+.fixed.inset-0 button:hover {
+  transform: translateY(-2px);
+}
+
+/* Mobile navigation */
+.lg\:hidden.fixed.bottom-0 {
+  animation: mobileNavIn 0.5s ease-out both;
+  box-shadow: 0 -10px 30px rgba(15, 23, 42, 0.08);
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sidebarEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes backdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes mobileNavIn {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes floatOrb {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-18px, 14px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 </style>
 ```

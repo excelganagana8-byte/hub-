@@ -9,7 +9,8 @@ import { connectDB } from "./config/database/db.js";
 
 import authRoutes from "./routes/authRoute.js";
 import teamRoutes from "./routes/teamRoute.js";
-
+import messageRoutes from "./routes/messageRoute.js";
+import userRoutes from "./routes/userRoute.js";
 import "./config/googleAuth.js";
 
 dotenv.config();
@@ -31,6 +32,9 @@ app.use(
     credentials: true,
   }),
 );
+
+app.use("/api/messages", messageRoutes);
+app.use("/api/users", userRoutes);
 
 // Passport
 app.use(passport.initialize());
