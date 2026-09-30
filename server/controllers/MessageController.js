@@ -1,5 +1,6 @@
 import Message from "../models/Message.js";
 import User from "../models/User.js";
+import { getIO } from "../socket.js";
 
 export const sendMessage = async (req, res) => {
   try {
@@ -29,6 +30,10 @@ export const sendMessage = async (req, res) => {
       "sender receiver",
       "username email",
     );
+
+    const io = getIO();
+
+    io.to(receiver).emit("newMessage", populatedMessage);
 
     res.status(201).json(populatedMessage);
   } catch (error) {

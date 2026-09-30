@@ -1,4 +1,5 @@
 import express from "express";
+import { initSocket } from "./socket.js";
 import dotenv from "dotenv";
 import morgan from "morgan";
 import cors from "cors";
@@ -67,6 +68,7 @@ app.get(
     const token = generateToken(req.user);
 
     const user = {
+      _id: req.user._id,
       email: req.user.email,
       username: req.user.username,
     };
@@ -79,6 +81,21 @@ app.get(
   },
 );
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`App is listening on port ${port}`);
+});
+
+const io = initSocket(server, allowedOrigins);
+
+io.on("connection", (socket) => {
+  console.log("🟢 User connected:", socket.id);
+
+  socket.on("join", (userId) => {
+    socket.join(userId);
+    console.log(`👤 User ${userId} joined their room`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("🔴 User disconnected:", socket.id);
+  });
 });

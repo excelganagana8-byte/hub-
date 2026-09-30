@@ -103,6 +103,7 @@ export const signIn = async (req, res) => {
 
     //create user object
     const user = {
+      _id: existingUser._id,
       email: existingUser.email,
       username: existingUser.username,
     };
@@ -111,7 +112,15 @@ export const signIn = async (req, res) => {
       message: `welcome back ${user.username}`,
       data: { user, token },
     });
-  } catch (error) {}
+  } catch (error) {
+    console.error("SIGNIN ERROR:", error);
+    console.error("MESSAGE:", error.message);
+    console.error("STACK:", error.stack);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
 };
 
 //verify user logic
