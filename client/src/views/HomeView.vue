@@ -1,10 +1,27 @@
-```vue
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, markRaw } from 'vue'
 import { useRouter } from 'vue-router'
+import { io } from 'socket.io-client'
+import {
+  Home,
+  Users,
+  MessageSquare,
+  Calendar,
+  Folder,
+  CheckSquare,
+  BarChart3,
+  Settings,
+  Paperclip,
+  LogOut,
+  Hand,
+  Plus,
+  Clock,
+  RefreshCw,
+} from '@lucide/vue'
 import { useAuthStore } from '@/stores/authStore'
 import TeamService from '@/services/TeamService'
 import AuthenticationService from '@/services/AuthenticationService'
+import ActivityService from '@/services/ActivityService'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -13,11 +30,15 @@ const user = ref(null)
 const teams = ref([])
 const activeTeam = ref(null)
 const recentActivity = ref([])
+const loadingActivity = ref(false)
+const activityError = ref('')
 const upcomingMeetings = ref([])
 const quickAccessItems = ref([])
 const activeNav = ref('home')
 const isSidebarCollapsed = ref(false)
 const loadingTeams = ref(false)
+
+let socket = null
 
 // Mobile menu
 const isMobileMenuOpen = ref(false)
@@ -29,89 +50,115 @@ const teamDescription = ref('')
 const isCreatingTeam = ref(false)
 const teamError = ref('')
 
+// Format relative time dynamically
+const formatRelativeTime = (dateInput) => {
+  if (!dateInput) return ''
+  const date = new Date(dateInput)
+  if (isNaN(date.getTime())) return typeof dateInput === 'string' ? dateInput : ''
+
+  const now = new Date()
+  const diffInSeconds = Math.floor((now - date) / 1000)
+
+  if (diffInSeconds < 60) return 'Just now'
+  const diffInMinutes = Math.floor(diffInSeconds / 60)
+  if (diffInMinutes < 60) return `${diffInMinutes}m ago`
+  const diffInHours = Math.floor(diffInMinutes / 60)
+  if (diffInHours < 24) return `${diffInHours}h ago`
+  const diffInDays = Math.floor(diffInHours / 24)
+  if (diffInDays < 7) return `${diffInDays}d ago`
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
+// Fetch real recent activity from API
+const fetchRecentActivities = async () => {
+  loadingActivity.value = true
+  activityError.value = ''
+
+  try {
+    const response = await ActivityService.fetchRecentActivities(20)
+    const items = response.data?.activities || []
+
+    recentActivity.value = items.map((activity) => ({
+      ...activity,
+      time: formatRelativeTime(activity.createdAt),
+    }))
+  } catch (error) {
+    console.error('Failed to fetch recent activities:', error)
+    activityError.value =
+      error.response?.data?.message || 'Failed to load real recent activity'
+  } finally {
+    loadingActivity.value = false
+  }
+}
+
 // Fetch dashboard data
 onMounted(async () => {
   user.value = auth.user
 
-  await fetchTeams()
+  await Promise.all([fetchTeams(), fetchRecentActivities()])
 
-  // Temporary data until Activity API is created
-  recentActivity.value = [
-    {
-      id: 1,
-      type: 'message',
-      user: 'Alex Johnson',
-      content: 'Posted in #general',
-      time: '10 min ago',
-      team: 'Dev Team',
-    },
-    {
-      id: 2,
-      type: 'file',
-      user: 'Sarah Miller',
-      content: 'Uploaded project-plan.pdf',
-      time: '1 hour ago',
-      team: 'Design Team',
-    },
-    {
-      id: 3,
-      type: 'task',
-      user: 'Mike Chen',
-      content: 'Completed task: Update API docs',
-      time: '2 hours ago',
-      team: 'Dev Team',
-    },
-  ]
-
-  // Temporary data until Meeting API is created
-  upcomingMeetings.value = [
-    {
-      id: 1,
-      title: 'Daily Standup',
-      time: '9:00 AM',
-      team: 'Dev Team',
-      duration: '15 min',
-    },
-    {
-      id: 2,
-      title: 'Product Review',
-      time: '2:00 PM',
-      team: 'All Teams',
-      duration: '1 hour',
-    },
-  ]
+  // Upcoming meetings list (production data empty state until meeting scheduler is hooked)
+  upcomingMeetings.value = []
 
   // Quick access
   quickAccessItems.value = [
     {
       id: 1,
       title: 'New Chat',
-      icon: '💬',
+      icon: markRaw(MessageSquare),
       color: 'bg-blue-100 text-blue-700',
       action: 'chat',
     },
     {
       id: 2,
       title: 'Schedule Meeting',
-      icon: '📅',
+      icon: markRaw(Calendar),
       color: 'bg-purple-100 text-purple-700',
       action: 'calendar',
     },
     {
       id: 3,
       title: 'Upload File',
-      icon: '📎',
+      icon: markRaw(Paperclip),
       color: 'bg-green-100 text-green-700',
       action: 'files',
     },
     {
       id: 4,
       title: 'Create Task',
-      icon: '✅',
+      icon: markRaw(CheckSquare),
       color: 'bg-yellow-100 text-yellow-700',
       action: 'tasks',
     },
   ]
+
+  // Setup real-time socket updates for activities
+  try {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+    const socketUrl = apiUrl.replace('/api', '')
+    socket = io(socketUrl)
+
+    socket.on('newActivity', (newAct) => {
+      if (newAct) {
+        recentActivity.value.unshift({
+          ...newAct,
+          time: formatRelativeTime(newAct.createdAt),
+        })
+        if (recentActivity.value.length > 20) {
+          recentActivity.value.pop()
+        }
+      }
+    })
+  } catch (err) {
+    console.warn('Socket connection for activity feed could not be established:', err)
+  }
+})
+
+onUnmounted(() => {
+  if (socket) {
+    socket.disconnect()
+    socket = null
+  }
 })
 
 // Logout
@@ -161,42 +208,42 @@ const navItems = [
   {
     id: 'home',
     label: 'Home',
-    icon: '🏠',
+    icon: markRaw(Home),
   },
   {
     id: 'teams',
     label: 'Teams',
-    icon: '👥',
+    icon: markRaw(Users),
   },
   {
     id: 'chat',
     label: 'Chat',
-    icon: '💬',
+    icon: markRaw(MessageSquare),
   },
   {
     id: 'calendar',
     label: 'Calendar',
-    icon: '📅',
+    icon: markRaw(Calendar),
   },
   {
     id: 'files',
     label: 'Files',
-    icon: '📁',
+    icon: markRaw(Folder),
   },
   {
     id: 'tasks',
     label: 'Tasks',
-    icon: '✅',
+    icon: markRaw(CheckSquare),
   },
   {
     id: 'analytics',
     label: 'Analytics',
-    icon: '📊',
+    icon: markRaw(BarChart3),
   },
   {
     id: 'settings',
     label: 'Settings',
-    icon: '⚙️',
+    icon: markRaw(Settings),
   },
 ]
 
@@ -322,6 +369,9 @@ const createTeam = async () => {
     teamName.value = ''
     teamDescription.value = ''
 
+    // Refresh real activities
+    await fetchRecentActivities()
+
     console.log('Team created successfully:', newTeam)
   } catch (error) {
     console.error('Failed to create team:', error)
@@ -396,9 +446,11 @@ const joinMeeting = () => {
               : 'text-gray-700 hover:bg-gray-50',
           ]"
         >
-          <span class="text-xl">
-            {{ item.icon }}
-          </span>
+          <component
+            :is="item.icon"
+            class="w-5 h-5 shrink-0"
+            aria-hidden="true"
+          />
 
           <span v-if="!isSidebarCollapsed" class="font-medium">
             {{ item.label }}
@@ -592,9 +644,11 @@ const joinMeeting = () => {
                 : 'text-gray-700 hover:bg-gray-50',
             ]"
           >
-            <span class="text-xl">
-              {{ item.icon }}
-            </span>
+            <component
+              :is="item.icon"
+              class="w-5 h-5 shrink-0"
+              aria-hidden="true"
+            />
 
             <span class="font-medium">
               {{ item.label }}
@@ -606,9 +660,9 @@ const joinMeeting = () => {
         <div class="p-4 border-t border-gray-200">
           <button
             @click="handleLogout"
-            class="w-full flex items-center gap-3 px-4 py-3 text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors font-medium"
+            class="w-full flex items-center gap-3 px-4 py-3 text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors font-medium cursor-pointer"
           >
-            <span class="text-xl">🚪</span>
+            <LogOut class="w-5 h-5 shrink-0" aria-hidden="true" />
             <span>Logout</span>
           </button>
         </div>
@@ -662,16 +716,16 @@ const joinMeeting = () => {
               <!-- Create New -->
               <button
                 @click="createNew('team')"
-                class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium flex items-center space-x-2"
+                class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium flex items-center gap-1.5 cursor-pointer"
               >
-                <span>+</span>
+                <Plus class="w-4 h-4" aria-hidden="true" />
                 <span>Create New</span>
               </button>
 
               <!-- Logout -->
               <button
                 @click="handleLogout"
-                class="px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors font-medium"
+                class="px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors font-medium cursor-pointer"
               >
                 Logout
               </button>
@@ -684,8 +738,9 @@ const joinMeeting = () => {
       <main class="flex-1 overflow-y-auto p-4 lg:p-8">
         <!-- Welcome -->
         <div class="mb-8">
-          <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">
-            Welcome back, {{ user?.username || 'there' }}! 👋
+          <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 flex items-center gap-2">
+            <span>Welcome back, {{ user?.username || 'there' }}!</span>
+            <Hand class="w-6 h-6 text-amber-500 shrink-0" aria-hidden="true" />
           </h1>
 
           <p class="text-gray-600 mt-2">Here's what's happening with your teams today.</p>
@@ -701,16 +756,17 @@ const joinMeeting = () => {
 
                 <div class="flex space-x-2">
                   <button
-                    class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+                    class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
                   >
                     View All
                   </button>
 
                   <button
                     @click="createNew('team')"
-                    class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
+                    class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium flex items-center gap-1.5 cursor-pointer"
                   >
-                    + New Team
+                    <Plus class="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>New Team</span>
                   </button>
                 </div>
               </div>
@@ -795,66 +851,156 @@ const joinMeeting = () => {
             <!-- Recent Activity -->
             <div class="bg-white rounded-xl border border-gray-200 p-6">
               <div class="flex justify-between items-center mb-6">
-                <h2 class="text-lg font-semibold text-gray-900">Recent Activity</h2>
+                <div class="flex items-center gap-2">
+                  <h2 class="text-lg font-semibold text-gray-900">Recent Activity</h2>
+                  <span
+                    v-if="!loadingActivity && recentActivity.length > 0"
+                    class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium"
+                  >
+                    {{ recentActivity.length }}
+                  </span>
+                </div>
 
-                <button class="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                  See all activity
+                <button
+                  @click="fetchRecentActivities"
+                  :disabled="loadingActivity"
+                  class="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw
+                    class="w-3.5 h-3.5"
+                    :class="{ 'animate-spin': loadingActivity }"
+                    aria-hidden="true"
+                  />
+                  <span>Refresh</span>
                 </button>
               </div>
 
-              <div class="space-y-4">
+              <!-- Loading Skeleton State -->
+              <div v-if="loadingActivity" class="space-y-4">
+                <div
+                  v-for="i in 3"
+                  :key="i"
+                  class="flex items-start space-x-4 p-3 animate-pulse rounded-lg"
+                >
+                  <div class="w-10 h-10 bg-gray-200 rounded-full shrink-0"></div>
+                  <div class="flex-1 space-y-2 py-1">
+                    <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+                    <div class="h-3 bg-gray-100 rounded w-1/4"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Error State with Retry -->
+              <div
+                v-else-if="activityError"
+                class="text-center py-8 bg-red-50/50 rounded-lg border border-red-100 p-4"
+              >
+                <p class="text-sm text-red-600 mb-3">{{ activityError }}</p>
+                <button
+                  @click="fetchRecentActivities"
+                  class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
+                >
+                  Retry
+                </button>
+              </div>
+
+              <!-- Empty State -->
+              <div v-else-if="recentActivity.length === 0" class="text-center py-10">
+                <div
+                  class="w-12 h-12 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-3"
+                >
+                  <Clock class="w-6 h-6" aria-hidden="true" />
+                </div>
+                <p class="text-sm font-semibold text-gray-900">No recent activity yet</p>
+                <p class="text-xs text-gray-500 mt-1 max-w-xs mx-auto">
+                  When teams are created or messages are sent, live updates will appear here automatically.
+                </p>
+                <div class="mt-4 flex justify-center gap-2">
+                  <button
+                    @click="createNew('team')"
+                    class="px-3 py-1.5 text-xs bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors cursor-pointer"
+                  >
+                    Create a Team
+                  </button>
+                  <button
+                    @click="setActiveNav('chat')"
+                    class="px-3 py-1.5 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
+                  >
+                    Open Chat
+                  </button>
+                </div>
+              </div>
+
+              <!-- Populated State with Real Activity Data -->
+              <div v-else class="space-y-4">
                 <div
                   v-for="activity in recentActivity"
-                  :key="activity.id"
+                  :key="activity.id || activity._id"
                   class="flex items-start space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors"
                 >
                   <div class="flex-shrink-0">
                     <div
                       v-if="activity.type === 'message'"
-                      class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center"
+                      class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center"
                     >
-                      💬
+                      <MessageSquare class="w-5 h-5" aria-hidden="true" />
+                    </div>
+
+                    <div
+                      v-else-if="activity.type === 'team'"
+                      class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center"
+                    >
+                      <Users class="w-5 h-5" aria-hidden="true" />
                     </div>
 
                     <div
                       v-else-if="activity.type === 'file'"
-                      class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center"
+                      class="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center"
                     >
-                      📎
+                      <Paperclip class="w-5 h-5" aria-hidden="true" />
                     </div>
 
                     <div
                       v-else-if="activity.type === 'task'"
-                      class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center"
+                      class="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center"
                     >
-                      ✅
+                      <CheckSquare class="w-5 h-5" aria-hidden="true" />
+                    </div>
+
+                    <div
+                      v-else-if="activity.type === 'meeting'"
+                      class="w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center"
+                    >
+                      <Calendar class="w-5 h-5" aria-hidden="true" />
                     </div>
 
                     <div
                       v-else
-                      class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center"
+                      class="w-10 h-10 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center"
                     >
-                      📅
+                      <Clock class="w-5 h-5" aria-hidden="true" />
                     </div>
                   </div>
 
                   <div class="flex-1 min-w-0">
                     <div class="flex flex-col sm:flex-row sm:justify-between">
                       <p class="text-sm text-gray-900 truncate">
-                        <span class="font-medium">
+                        <span class="font-medium text-gray-900">
                           {{ activity.user }}
                         </span>
-
-                        {{ activity.content }}
+                        <span class="text-gray-600 ml-1">
+                          {{ activity.content }}
+                        </span>
                       </p>
 
-                      <span class="text-xs text-gray-500">
+                      <span class="text-xs text-gray-500 shrink-0 mt-0.5 sm:mt-0">
                         {{ activity.time }}
                       </span>
                     </div>
 
                     <span
-                      class="text-xs text-gray-400 mt-1 inline-block px-2 py-1 bg-gray-100 rounded"
+                      v-if="activity.team"
+                      class="text-xs text-gray-500 mt-1 inline-block px-2 py-0.5 bg-gray-100 rounded"
                     >
                       {{ activity.team }}
                     </span>
@@ -876,7 +1022,17 @@ const joinMeeting = () => {
                 </button>
               </div>
 
-              <div class="space-y-4">
+              <!-- Empty state for Upcoming -->
+              <div v-if="upcomingMeetings.length === 0" class="text-center py-8">
+                <div
+                  class="w-10 h-10 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-2"
+                >
+                  <Calendar class="w-5 h-5" aria-hidden="true" />
+                </div>
+                <p class="text-sm text-gray-500">No upcoming meetings scheduled</p>
+              </div>
+
+              <div v-else class="space-y-4">
                 <div
                   v-for="meeting in upcomingMeetings"
                   :key="meeting.id"
@@ -919,12 +1075,14 @@ const joinMeeting = () => {
                   @click="handleQuickAccess(item)"
                   :class="[
                     item.color,
-                    'flex flex-col items-center justify-center p-4 rounded-xl hover:scale-[1.02] transition-transform duration-200',
+                    'flex flex-col items-center justify-center p-4 rounded-xl hover:scale-[1.02] transition-transform duration-200 cursor-pointer',
                   ]"
                 >
-                  <span class="text-2xl mb-2">
-                    {{ item.icon }}
-                  </span>
+                  <component
+                    :is="item.icon"
+                    class="w-6 h-6 mb-2 shrink-0"
+                    aria-hidden="true"
+                  />
 
                   <span class="text-sm font-medium">
                     {{ item.title }}
@@ -1119,9 +1277,11 @@ const joinMeeting = () => {
               activeNav === item.id ? 'text-blue-600' : 'text-gray-500',
             ]"
           >
-            <span class="text-2xl">
-              {{ item.icon }}
-            </span>
+            <component
+              :is="item.icon"
+              class="w-5 h-5 shrink-0"
+              aria-hidden="true"
+            />
 
             <span class="text-xs mt-1">
               {{ item.label }}
@@ -1422,4 +1582,3 @@ nav button:hover::before {
   }
 }
 </style>
-```

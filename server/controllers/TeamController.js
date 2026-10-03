@@ -1,4 +1,5 @@
 import Team from "../models/Team.js";
+import { recordActivity } from "./ActivityController.js";
 
 export const createTeam = async (req, res) => {
   try {
@@ -26,6 +27,16 @@ export const createTeam = async (req, res) => {
     const populatedTeam = await Team.findById(team._id)
       .populate("owner", "username email")
       .populate("members.user", "username email");
+
+    // Record real activity
+    await recordActivity({
+      user: req.user.id,
+      type: "team",
+      action: "created_team",
+      content: `Created team "${team.name.trim()}"`,
+      team: team._id,
+      teamName: team.name.trim(),
+    });
 
     res.status(201).json({
       message: "Team created successfully",

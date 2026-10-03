@@ -1,6 +1,7 @@
 import Message from "../models/Message.js";
 import User from "../models/User.js";
 import { getIO } from "../socket.js";
+import { recordActivity } from "./ActivityController.js";
 
 export const sendMessage = async (req, res) => {
   try {
@@ -30,6 +31,18 @@ export const sendMessage = async (req, res) => {
       "sender receiver",
       "username email",
     );
+
+    // Record real activity
+    await recordActivity({
+      user: req.user.id,
+      type: "message",
+      action: "sent_message",
+      content: `Sent a message to ${receiverUser.username}`,
+      targetUser: receiver,
+      metadata: {
+        messageId: message._id,
+      },
+    });
 
     const io = getIO();
 

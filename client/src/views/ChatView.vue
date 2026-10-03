@@ -1,6 +1,7 @@
 <script setup>
 import { io } from 'socket.io-client'
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { Smile } from '@lucide/vue'
 import Api from '@/services/Api'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -16,7 +17,6 @@ const textarea = ref(null)
 
 // Track scroll state + incoming messages while reading history
 const hasNewMessages = ref(false)
-let pendingUnseen = 0
 
 const socket = io(import.meta.env.VITE_API_URL.replace('/api', ''))
 
@@ -49,9 +49,7 @@ const scrollToBottom = async (force = false) => {
   if (force || isNearBottom()) {
     el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
     hasNewMessages.value = false
-    pendingUnseen = 0
   } else {
-    pendingUnseen += 1
     hasNewMessages.value = true
   }
 }
@@ -59,7 +57,6 @@ const scrollToBottom = async (force = false) => {
 const onMessagesScroll = () => {
   if (hasNewMessages.value && isNearBottom()) {
     hasNewMessages.value = false
-    pendingUnseen = 0
   }
 }
 
@@ -617,8 +614,9 @@ const autoGrowTextarea = () => {
                 type="button"
                 class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-200/70 hover:text-gray-700"
                 title="Add emoji"
+                aria-label="Add emoji"
               >
-                <span class="text-lg">😊</span>
+                <Smile class="h-5 w-5" aria-hidden="true" />
               </button>
 
               <textarea

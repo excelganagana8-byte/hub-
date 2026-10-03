@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ArrowLeft, Settings, UserPlus, MessageSquare, Folder, CheckSquare } from '@lucide/vue'
 import TeamService from '@/services/TeamService'
 
 const route = useRoute()
@@ -42,9 +43,10 @@ onMounted(fetchTeam)
         <div class="flex items-center gap-4">
           <button
             @click="goBack"
-            class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+            class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1.5 transition-colors cursor-pointer"
           >
-            ← Back
+            <ArrowLeft class="w-4 h-4" aria-hidden="true" />
+            <span>Back</span>
           </button>
 
           <div v-if="team">
@@ -58,8 +60,11 @@ onMounted(fetchTeam)
           </div>
         </div>
 
-        <button class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800">
-          ⚙️ Settings
+        <button
+          class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 flex items-center gap-2 transition-colors cursor-pointer"
+        >
+          <Settings class="w-4 h-4" aria-hidden="true" />
+          <span>Settings</span>
         </button>
       </div>
     </header>
@@ -112,9 +117,10 @@ onMounted(fetchTeam)
           </div>
 
           <button
-            class="w-full mt-5 px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
+            class="w-full mt-5 px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
-            + Invite Member
+            <UserPlus class="w-4 h-4" aria-hidden="true" />
+            <span>Invite Member</span>
           </button>
         </aside>
 
@@ -126,21 +132,27 @@ onMounted(fetchTeam)
             <p class="text-gray-500 mt-2">This is your team workspace.</p>
 
             <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div class="border border-gray-200 rounded-lg p-5">
-                <div class="text-2xl mb-2">💬</div>
-                <h3 class="font-medium">Chat</h3>
+              <div class="border border-gray-200 rounded-lg p-5 hover:border-gray-300 transition-colors">
+                <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
+                  <MessageSquare class="w-5 h-5" aria-hidden="true" />
+                </div>
+                <h3 class="font-medium text-gray-900">Chat</h3>
                 <p class="text-sm text-gray-500 mt-1">Communicate with your team.</p>
               </div>
 
-              <div class="border border-gray-200 rounded-lg p-5">
-                <div class="text-2xl mb-2">📁</div>
-                <h3 class="font-medium">Files</h3>
+              <div class="border border-gray-200 rounded-lg p-5 hover:border-gray-300 transition-colors">
+                <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center mb-3">
+                  <Folder class="w-5 h-5" aria-hidden="true" />
+                </div>
+                <h3 class="font-medium text-gray-900">Files</h3>
                 <p class="text-sm text-gray-500 mt-1">Share and manage team files.</p>
               </div>
 
-              <div class="border border-gray-200 rounded-lg p-5">
-                <div class="text-2xl mb-2">✅</div>
-                <h3 class="font-medium">Tasks</h3>
+              <div class="border border-gray-200 rounded-lg p-5 hover:border-gray-300 transition-colors">
+                <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3">
+                  <CheckSquare class="w-5 h-5" aria-hidden="true" />
+                </div>
+                <h3 class="font-medium text-gray-900">Tasks</h3>
                 <p class="text-sm text-gray-500 mt-1">Manage your team's tasks.</p>
               </div>
             </div>

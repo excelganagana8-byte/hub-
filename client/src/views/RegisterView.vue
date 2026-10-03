@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { AlertCircle } from '@lucide/vue'
 import AuthenticationService from '@/services/AuthenticationService'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -211,7 +212,10 @@ const registerUser = async () => {
               class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             />
 
-            <p v-if="errors.email" class="text-red-500 text-sm mt-1">⚠️ {{ errors.email }}</p>
+            <p v-if="errors.email" class="text-red-500 text-sm mt-1 flex items-center gap-1.5">
+              <AlertCircle class="w-4 h-4 shrink-0" aria-hidden="true" />
+              <span>{{ errors.email }}</span>
+            </p>
           </div>
 
           <!-- Password -->
@@ -228,7 +232,10 @@ const registerUser = async () => {
               class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             />
 
-            <p v-if="errors.password" class="text-red-500 text-sm mt-1">⚠️ {{ errors.password }}</p>
+            <p v-if="errors.password" class="text-red-500 text-sm mt-1 flex items-center gap-1.5">
+              <AlertCircle class="w-4 h-4 shrink-0" aria-hidden="true" />
+              <span>{{ errors.password }}</span>
+            </p>
 
             <span class="text-xs text-gray-500 mt-2 block">
               Password should be at least 15 characters OR at least 8 characters including a number
@@ -250,7 +257,10 @@ const registerUser = async () => {
               class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             />
 
-            <p v-if="errors.username" class="text-red-500 text-sm mt-1">⚠️ {{ errors.username }}</p>
+            <p v-if="errors.username" class="text-red-500 text-sm mt-1 flex items-center gap-1.5">
+              <AlertCircle class="w-4 h-4 shrink-0" aria-hidden="true" />
+              <span>{{ errors.username }}</span>
+            </p>
 
             <span class="text-xs text-gray-500 mt-2 block">
               Username can only contain alphanumeric characters or single hyphens and cannot begin
@@ -276,8 +286,12 @@ const registerUser = async () => {
           </div>
 
           <!-- General Errors -->
-          <p v-if="errors.general" class="text-red-500 text-sm text-center mt-2">
-            ⚠️ {{ errors.general }}
+          <p
+            v-if="errors.general"
+            class="text-red-500 text-sm text-center mt-2 flex items-center justify-center gap-1.5"
+          >
+            <AlertCircle class="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span>{{ errors.general }}</span>
           </p>
 
           <!-- Submit -->
