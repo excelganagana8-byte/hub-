@@ -1,6 +1,11 @@
 import express from "express";
 import { body } from "express-validator";
-import { signUp, signIn } from "../controllers/AuthenticationController.js";
+import {
+  signUp,
+  signIn,
+  refreshToken,
+  logout,
+} from "../controllers/AuthenticationController.js";
 import passport from "passport";
 
 const router = express.Router();
@@ -37,6 +42,8 @@ router.post(
   signIn,
 );
 
+router.post("/refresh-token", refreshToken);
+
 router.get(
   "/google",
   passport.authenticate("google", {
@@ -54,5 +61,5 @@ router.get(
     res.redirect("http://localhost:5173");
   },
 );
-
+router.post("/logout", logout);
 export default router;

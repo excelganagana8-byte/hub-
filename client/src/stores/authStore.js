@@ -7,6 +7,7 @@ export const useAuthStore = defineStore('auth', {
     user: (() => {
       try {
         const userString = localStorage.getItem('user')
+
         return userString ? JSON.parse(userString) : null
       } catch {
         localStorage.removeItem('user')
@@ -47,6 +48,33 @@ export const useAuthStore = defineStore('auth', {
         } catch {
           this.logout()
         }
+      }
+    },
+
+    async refreshToken() {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+        })
+
+        if (!response.ok) {
+          this.logout()
+          return false
+        }
+
+        const data = await response.json()
+
+        this.token = data.token
+
+        localStorage.setItem('token', data.token)
+
+        return true
+      } catch (error) {
+        console.error('Token refresh failed:', error)
+
+        this.logout()
+        return false
       }
     },
   },

@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import morgan from "morgan";
 import cors from "cors";
 import passport from "passport";
+import cookieParser from "cookie-parser";
 
 import { generateToken } from "./services/generateToken.js";
 import { connectDB } from "./config/database/db.js";
@@ -26,6 +27,8 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://hub-one-amber.vercel.app",
 ];
+
+app.use(cookieParser());
 
 app.use(
   cors({

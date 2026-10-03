@@ -1,7 +1,11 @@
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { validationResult } from "express-validator";
-import { generateToken } from "../services/generateToken.js";
+import {
+  generateToken,
+  generateRefreshToken,
+} from "../services/generateToken.js";
 import VerificationPin from "../models/VerificationPin.js";
 import { generateRef } from "../utils/generateRef.js";
 
@@ -46,17 +50,26 @@ export const signUp = async (req, res) => {
 
     // Generate JWT
     const token = generateToken(user);
+    const refreshToken = generateRefreshToken(user);
 
-    return res.status(201).json({
-      message: `Hello ${username}!, signup successful`,
-      data: {
-        user: {
-          email,
-          username,
+    return res
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+      })
+      .status(201)
+      .json({
+        message: `Hello ${username}!, signup successful`,
+        data: {
+          user: {
+            email,
+            username,
+          },
+          token,
         },
-        token,
-      },
-    });
+      });
   } catch (error) {
     console.error("SIGNUP ERROR:", error);
     console.error("MESSAGE:", error.message);
@@ -100,6 +113,7 @@ export const signIn = async (req, res) => {
       return res.status(400).json({ message: "incorrect password" });
 
     const token = generateToken(existingUser);
+    const refreshToken = generateRefreshToken(existingUser);
 
     //create user object
     const user = {
@@ -107,11 +121,18 @@ export const signIn = async (req, res) => {
       email: existingUser.email,
       username: existingUser.username,
     };
-
-    res.status(200).json({
-      message: `welcome back ${user.username}`,
-      data: { user, token },
-    });
+    res
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+      })
+      .status(200)
+      .json({
+        message: `welcome back ${user.username}`,
+        data: { user, token },
+      });
   } catch (error) {
     console.error("SIGNIN ERROR:", error);
     console.error("MESSAGE:", error.message);
@@ -119,6 +140,38 @@ export const signIn = async (req, res) => {
 
     return res.status(500).json({
       message: "Server error",
+    });
+  }
+};
+
+export const refreshToken = async (req, res) => {
+  try {
+    const token = req.cookies.refreshToken;
+
+    if (!token) {
+      return res.status(401).json({
+        message: "No refresh token",
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(401).json({
+        message: "User not found",
+      });
+    }
+
+    const newToken = generateToken(user);
+
+    return res.status(200).json({
+      token: newToken,
+    });
+  } catch (error) {
+    return res.status(401).json({
+      message: "Invalid or expired refresh token",
     });
   }
 };
@@ -196,4 +249,16 @@ export const resetPassword = async (req, body) => {
   } catch (error) {
     cconsole.error();
   }
+};
+
+export const logout = (req, res) => {
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  });
+
+  return res.status(200).json({
+    message: "Logged out successfully",
+  });
 };

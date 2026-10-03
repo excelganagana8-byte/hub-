@@ -4,6 +4,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import TeamService from '@/services/TeamService'
+import AuthenticationService from '@/services/AuthenticationService'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -11,14 +12,15 @@ const router = useRouter()
 const user = ref(null)
 const teams = ref([])
 const activeTeam = ref(null)
-
 const recentActivity = ref([])
 const upcomingMeetings = ref([])
 const quickAccessItems = ref([])
-
 const activeNav = ref('home')
 const isSidebarCollapsed = ref(false)
 const loadingTeams = ref(false)
+
+// Mobile menu
+const isMobileMenuOpen = ref(false)
 
 // Create Team Modal
 const showCreateTeamModal = ref(false)
@@ -86,27 +88,53 @@ onMounted(async () => {
       title: 'New Chat',
       icon: '💬',
       color: 'bg-blue-100 text-blue-700',
+      action: 'chat',
     },
     {
       id: 2,
       title: 'Schedule Meeting',
       icon: '📅',
       color: 'bg-purple-100 text-purple-700',
+      action: 'calendar',
     },
     {
       id: 3,
       title: 'Upload File',
       icon: '📎',
       color: 'bg-green-100 text-green-700',
+      action: 'files',
     },
     {
       id: 4,
       title: 'Create Task',
       icon: '✅',
       color: 'bg-yellow-100 text-yellow-700',
+      action: 'tasks',
     },
   ]
 })
+
+// Logout
+const handleLogout = async () => {
+  try {
+    await AuthenticationService.logout()
+  } catch (error) {
+    console.error('Logout failed:', error)
+  } finally {
+    auth.logout()
+    isMobileMenuOpen.value = false
+    router.push('/login')
+  }
+}
+
+// Mobile menu
+const openMobileMenu = () => {
+  isMobileMenuOpen.value = true
+}
+
+const closeMobileMenu = () => {
+  isMobileMenuOpen.value = false
+}
 
 // Fetch user's teams
 const fetchTeams = async () => {
@@ -172,7 +200,7 @@ const navItems = [
   },
 ]
 
-// Change navigation
+// Navigation routes
 const navRoutes = {
   home: '/dashboard',
   teams: '/teams',
@@ -192,6 +220,8 @@ const setActiveNav = (navId) => {
   if (route) {
     router.push(route)
   }
+
+  isMobileMenuOpen.value = false
 }
 
 // Select team
@@ -219,12 +249,27 @@ const createNew = (type) => {
   console.log(`Creating new ${type}`)
 }
 
+// Quick Access
+const handleQuickAccess = (item) => {
+  const routes = {
+    chat: '/chat',
+    calendar: '/calendar',
+    files: '/files',
+    tasks: '/tasks',
+  }
+
+  const route = routes[item.action]
+
+  if (route) {
+    router.push(route)
+  }
+}
+
 // Open Create Team Modal
 const openCreateTeamModal = () => {
   teamName.value = ''
   teamDescription.value = ''
   teamError.value = ''
-
   showCreateTeamModal.value = true
 }
 
@@ -295,7 +340,7 @@ const joinMeeting = () => {
 
 <template>
   <div class="min-h-screen bg-gray-50 flex">
-    <!-- Sidebar -->
+    <!-- Desktop Sidebar -->
     <aside
       :class="[
         'hidden lg:flex flex-col border-r border-gray-200 bg-white transition-all duration-300',
@@ -316,7 +361,6 @@ const joinMeeting = () => {
               d="M24 41.5C23.5 41.5 23 41.3 22.6 40.9C16.5 35.2 12 31 9 27C4 21 4 15.5 4 12C4 6.5 8.5 2 14 2C17.5 2 20.8 3.8 23 6.5C25.2 3.8 28.5 2 32 2C37.5 2 42 6.5 42 12C42 15.5 42 21 37 27C34 31 29.5 35.2 23.4 40.9C23 41.3 22.5 41.5 24 41.5Z"
               fill="#EA4C89"
             />
-
             <path
               d="M19 26L23 30L27 26"
               stroke="white"
@@ -324,7 +368,6 @@ const joinMeeting = () => {
               stroke-linecap="round"
               stroke-linejoin="round"
             />
-
             <path
               d="M21 18L17 14L13 18"
               stroke="white"
@@ -332,9 +375,7 @@ const joinMeeting = () => {
               stroke-linecap="round"
               stroke-linejoin="round"
             />
-
             <path d="M17 14V22" stroke="white" stroke-width="2" stroke-linecap="round" />
-
             <path d="M23 30V22" stroke="white" stroke-width="2" stroke-linecap="round" />
           </svg>
 
@@ -418,7 +459,162 @@ const joinMeeting = () => {
 
     <!-- Main -->
     <div class="flex-1 flex flex-col min-h-screen">
-      <!-- Header -->
+      <!-- Mobile Header -->
+      <header class="lg:hidden sticky top-0 z-40 bg-white border-b border-gray-200">
+        <div class="px-4 py-3 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <!-- Hamburger -->
+            <button
+              @click="openMobileMenu"
+              class="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              aria-label="Open menu"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+
+            <!-- Logo -->
+            <div class="flex items-center gap-2">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 48 48"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M24 41.5C23.5 41.5 23 41.3 22.6 40.9C16.5 35.2 12 31 9 27C4 21 4 15.5 4 12C4 6.5 8.5 2 14 2C17.5 2 20.8 3.8 23 6.5C25.2 3.8 28.5 2 32 2C37.5 2 42 6.5 42 12C42 15.5 42 21 37 27C34 31 29.5 35.2 23.4 40.9C23 41.3 22.5 41.5 24 41.5Z"
+                  fill="#EA4C89"
+                />
+                <path
+                  d="M19 26L23 30L27 26"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M21 18L17 14L13 18"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path d="M17 14V22" stroke="white" stroke-width="2" stroke-linecap="round" />
+                <path d="M23 30V22" stroke="white" stroke-width="2" stroke-linecap="round" />
+              </svg>
+
+              <span class="text-lg font-semibold text-gray-900"> CollabX </span>
+            </div>
+          </div>
+
+          <!-- Mobile Notification -->
+          <button
+            class="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+            aria-label="Notifications"
+          >
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+              />
+            </svg>
+
+            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Mobile Menu Backdrop -->
+      <div
+        v-if="isMobileMenuOpen"
+        class="fixed inset-0 z-[90] bg-black/40 lg:hidden"
+        @click="closeMobileMenu"
+      ></div>
+
+      <!-- Mobile Menu -->
+      <aside
+        v-if="isMobileMenuOpen"
+        class="fixed top-0 left-0 bottom-0 z-[100] w-80 max-w-[85vw] bg-white shadow-2xl lg:hidden flex flex-col"
+      >
+        <!-- Mobile Menu Header -->
+        <div class="p-5 border-b border-gray-200 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium"
+            >
+              {{ user?.username?.charAt(0).toUpperCase() || 'U' }}
+            </div>
+
+            <div>
+              <p class="text-sm font-semibold text-gray-900">
+                {{ user?.username || 'User' }}
+              </p>
+
+              <p class="text-xs text-gray-500">Online</p>
+            </div>
+          </div>
+
+          <button
+            @click="closeMobileMenu"
+            class="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+            aria-label="Close menu"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Mobile Menu Navigation -->
+        <nav class="flex-1 overflow-y-auto p-4 space-y-1">
+          <button
+            v-for="item in navItems"
+            :key="item.id"
+            @click="setActiveNav(item.id)"
+            :class="[
+              'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left',
+              activeNav === item.id
+                ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                : 'text-gray-700 hover:bg-gray-50',
+            ]"
+          >
+            <span class="text-xl">
+              {{ item.icon }}
+            </span>
+
+            <span class="font-medium">
+              {{ item.label }}
+            </span>
+          </button>
+        </nav>
+
+        <!-- Mobile Menu Footer -->
+        <div class="p-4 border-t border-gray-200">
+          <button
+            @click="handleLogout"
+            class="w-full flex items-center gap-3 px-4 py-3 text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors font-medium"
+          >
+            <span class="text-xl">🚪</span>
+            <span>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Desktop Header -->
       <header class="hidden lg:block bg-white border-b border-gray-200">
         <div class="px-8 py-4">
           <div class="flex items-center justify-between">
@@ -446,7 +642,8 @@ const joinMeeting = () => {
               </div>
             </div>
 
-            <div class="flex items-center space-x-4 ml-6">
+            <div class="flex items-center space-x-3 ml-6">
+              <!-- Notifications -->
               <button
                 class="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
               >
@@ -462,12 +659,21 @@ const joinMeeting = () => {
                 <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
 
+              <!-- Create New -->
               <button
                 @click="createNew('team')"
                 class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium flex items-center space-x-2"
               >
                 <span>+</span>
                 <span>Create New</span>
+              </button>
+
+              <!-- Logout -->
+              <button
+                @click="handleLogout"
+                class="px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors font-medium"
+              >
+                Logout
               </button>
             </div>
           </div>
@@ -710,7 +916,7 @@ const joinMeeting = () => {
                 <button
                   v-for="item in quickAccessItems"
                   :key="item.id"
-                  @click="createNew(item.title)"
+                  @click="handleQuickAccess(item)"
                   :class="[
                     item.color,
                     'flex flex-col items-center justify-center p-4 rounded-xl hover:scale-[1.02] transition-transform duration-200',
@@ -899,7 +1105,7 @@ const joinMeeting = () => {
         </div>
       </div>
 
-      <!-- Mobile Navigation -->
+      <!-- Mobile Bottom Navigation -->
       <div
         class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 shadow-lg z-50"
       >
@@ -992,9 +1198,11 @@ button:not(:disabled):active {
 .group:nth-child(2) {
   animation-delay: 80ms;
 }
+
 .group:nth-child(3) {
   animation-delay: 160ms;
 }
+
 .group:nth-child(4) {
   animation-delay: 240ms;
 }
@@ -1093,11 +1301,29 @@ nav button:hover::before {
   box-shadow: 0 -10px 30px rgba(15, 23, 42, 0.08);
 }
 
+/* Mobile menu */
+.lg\:hidden.fixed.top-0 {
+  animation: mobileMenuIn 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Mobile menu backdrop */
+.fixed.inset-0.lg\:hidden {
+  animation: backdropIn 220ms ease-out both;
+}
+
+/* Prevent dashboard content from hiding behind bottom navigation */
+@media (max-width: 1023px) {
+  main {
+    padding-bottom: 96px;
+  }
+}
+
 @keyframes cardEnter {
   from {
     opacity: 0;
     transform: translateY(14px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1109,6 +1335,7 @@ nav button:hover::before {
     opacity: 0;
     transform: translateY(18px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1120,6 +1347,19 @@ nav button:hover::before {
     opacity: 0;
     transform: translateX(-24px);
   }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes mobileMenuIn {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -1130,6 +1370,7 @@ nav button:hover::before {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -1140,6 +1381,7 @@ nav button:hover::before {
     opacity: 0;
     transform: translateY(24px) scale(0.94);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -1151,6 +1393,7 @@ nav button:hover::before {
     opacity: 0;
     transform: translateY(100%);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1162,6 +1405,7 @@ nav button:hover::before {
   100% {
     transform: translate(0, 0);
   }
+
   50% {
     transform: translate(-18px, 14px);
   }
