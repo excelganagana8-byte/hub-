@@ -1,4 +1,4 @@
-# 🚀 Hub
+# Hub
 
 A modern, full-stack web application built with **Vue 3** on the frontend and **Express.js & MongoDB** on the backend — designed to demonstrate how the frontend seamlessly interacts with the backend using a RESTful API architecture and powered by Vite for speed and efficiency.
 
@@ -7,7 +7,7 @@ A modern, full-stack web application built with **Vue 3** on the frontend and **
 ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 
-## ✨ Features
+## Features
 
 - **Reactive Frontend:** Built with Vue 3 for a fast, component-based user interface.
 - **Utility-First Styling:** Styled beautifully with Tailwind CSS.
@@ -16,7 +16,7 @@ A modern, full-stack web application built with **Vue 3** on the frontend and **
 - **State Management:** Pinia for simple and effective state management.
 - **Modern Tooling:** Vite for a lightning-fast development experience.
 
-## 🗂️ Project Structure
+## Project Structure
 
 ```bash
 hub/
@@ -36,7 +36,7 @@ hub/
 └── README.md
 ```
 
-## ⚙️ Setup & Installation
+## Setup & Installation
 
 ### Prerequisites
 

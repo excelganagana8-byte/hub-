@@ -13,6 +13,7 @@ import authRoutes from "./routes/authRoute.js";
 import teamRoutes from "./routes/teamRoute.js";
 import messageRoutes from "./routes/messageRoute.js";
 import userRoutes from "./routes/userRoute.js";
+import activityRoutes from "./routes/activityRoute.js";
 import "./config/googleAuth.js";
 
 dotenv.config();
@@ -25,6 +26,7 @@ app.use(express.json());
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:5174",
   "https://hub-one-amber.vercel.app",
 ];
 
@@ -39,6 +41,7 @@ app.use(
 
 app.use("/api/messages", messageRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/activities", activityRoutes);
 
 // Passport
 app.use(passport.initialize());
@@ -91,14 +94,14 @@ const server = app.listen(port, () => {
 const io = initSocket(server, allowedOrigins);
 
 io.on("connection", (socket) => {
-  console.log("🟢 User connected:", socket.id);
+  console.log("[CONNECTED] User connected:", socket.id);
 
   socket.on("join", (userId) => {
     socket.join(userId);
-    console.log(`👤 User ${userId} joined their room`);
+    console.log(`[ROOM] User ${userId} joined their room`);
   });
 
   socket.on("disconnect", () => {
-    console.log("🔴 User disconnected:", socket.id);
+    console.log("[DISCONNECTED] User disconnected:", socket.id);
   });
 });
